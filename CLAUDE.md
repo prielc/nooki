@@ -12,7 +12,11 @@ Pre-code bootstrap. Product requirements are defined in [`docs/PRD.md`](docs/PRD
 
 ## Tech stack
 
-Not chosen yet. Per PP-005 in the PRD, the product is explicitly **No Backend** — everything (PIN, approved-channel list) is persisted locally on-device; there is no server/database component to design. Still open: the Android TV app framework (native Kotlin/Compose for TV, React Native, etc.) and how it calls the YouTube Data API.
+**Kotlin + Jetpack Compose for TV**, native Android TV/Google TV app. Chosen over React Native for best-of-breed TV-remote input handling and Android TV platform support, matching PP-003 (TV Remote Only) and PP-004 (Simple Before Smart) — tradeoff is slower ramp-up if the team lacks prior Kotlin experience.
+
+Per PP-005 in the PRD, the product is explicitly **No Backend** — everything (PIN, approved-channel list) is persisted locally on-device (likely DataStore/Room, TBD when storage is implemented); there is no server/database component to design. Still open: how the app authenticates to / calls the YouTube Data API.
+
+Local dev environment note: this machine had no Android Studio, SDK, or Gradle, and only Java 8 (Compose/AGP need JDK 17+) — Android Studio is being installed via Homebrew (`brew install --cask android-studio`), which bundles its own JDK and lets the SDK be installed through its setup wizard.
 
 ## Commands
 
