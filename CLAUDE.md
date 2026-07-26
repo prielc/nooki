@@ -4,11 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project status
 
-Empty bootstrap: this directory contains no git repository and no application code — just this file and `.claude/`. There is no `docs/SRR.md`, `docs/PRD.md`, or `supabase/` directory yet, despite earlier drafts of this file describing them as already in place. Treat any prior references to a linked Supabase project, product docs, or migrations as aspirational, not current state, until those files actually exist.
+Pre-code bootstrap. Product requirements are defined in [`docs/PRD.md`](docs/PRD.md) — read it before building features. No application code exists yet.
+
+**Nooki** is a parent-controlled YouTube viewer for kids on Android TV / Google TV (MVP targets Xiaomi TV Box-style streamers). A parent sets a PIN and builds an approved-channel whitelist; the child can only ever watch, search, or get recommended videos from within that whitelist — never raw YouTube, Shorts, comments, or related-channel content. All content requests flow through a single "Content Engine" chokepoint (see Architecture) so this guarantee holds everywhere in the app, not just on the home feed.
+
+Note: `docs/PRD.md` has a section-numbering gap — it jumps from `# 7. User Flow` (which includes "Daily Flow" and "My Channels") to `# Feature 4/5/6` (Search, Channel Page, Video Player) without a numbered `# 8` wrapper, then to `# 9. Functional Requirements`. Content reads as complete despite the numbering; flagged to the user, not yet resolved.
 
 ## Tech stack
 
-Not chosen yet. Nothing to build, lint, or test.
+Not chosen yet. Per PP-005 in the PRD, the product is explicitly **No Backend** — everything (PIN, approved-channel list) is persisted locally on-device; there is no server/database component to design. Still open: the Android TV app framework (native Kotlin/Compose for TV, React Native, etc.) and how it calls the YouTube Data API.
 
 ## Commands
 
@@ -16,22 +20,26 @@ None yet — no package manifest, build tooling, or test runner exists in this r
 
 ## Data model
 
-None yet.
+None yet. Per the PRD (§11 Local Storage), the only persisted state is the PIN and the list of approved channels — no videos, feed, search results, or recommendations are ever cached locally.
 
 ## Architecture
 
-None yet.
+None yet, but the PRD (§12–13) specifies the shape: every screen goes through a single **Content Engine**, never YouTube directly.
+
+```text
+Nooki UI → Content Engine → YouTube Data API → Official YouTube Player
+```
+
+The Content Engine is responsible for building the home feed (latest 10 videos per approved channel, merged, shuffled, capped at 2 consecutive videos from the same channel), scoping search to approved channels only, and loading a channel's video list. This is the enforcement point for every whitelist business rule (BR-001–BR-008) in the PRD.
 
 ## Next steps for future sessions
 
 Keep this section current as the project takes shape — update it whenever a new model, route group, or major structural decision is added, per the self-updating `.md` rule below.
 
-- `git init` this directory (it is not currently a git repository).
-- Get the product requirements docs (SRR, PRD) into `docs/` if they exist elsewhere, or write them here.
-- Set up and link the Supabase project, if that's still the intended backend.
-- Choose the application framework/stack (frontend + how it talks to the backend).
-- Define the initial data model and create the first migration.
-- Decide on auth strategy once the app has users.
+- Choose the Android TV app framework/stack and confirm how it authenticates to the YouTube Data API.
+- Resolve the `docs/PRD.md` section-numbering gap noted above with the user (missing "# 8" wrapper).
+- Define local on-device storage for PIN + approved channels (§11 of the PRD).
+- Build the Content Engine as the single chokepoint for feed/search/channel calls (§12–13 of the PRD).
 
 ## Git workflow (autonomous)
 
