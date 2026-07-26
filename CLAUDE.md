@@ -8,7 +8,7 @@ Pre-code bootstrap. Product requirements are defined in [`docs/PRD.md`](docs/PRD
 
 **Nooki** is a parent-controlled YouTube viewer for kids on Android TV / Google TV (MVP targets Xiaomi TV Box-style streamers). A parent sets a PIN and builds an approved-channel whitelist; the child can only ever watch, search, or get recommended videos from within that whitelist — never raw YouTube, Shorts, comments, or related-channel content. All content requests flow through a single "Content Engine" chokepoint (see Architecture) so this guarantee holds everywhere in the app, not just on the home feed.
 
-Note: `docs/PRD.md` has a section-numbering gap — it jumps from `# 7. User Flow` (which includes "Daily Flow" and "My Channels") to `# Feature 4/5/6` (Search, Channel Page, Video Player) without a numbered `# 8` wrapper, then to `# 9. Functional Requirements`. Content reads as complete despite the numbering; flagged to the user, not yet resolved.
+`docs/PRD.md`'s features are organized under `# 8. Core Features`, numbered 1–5 (Home Feed, My Channels, Search, Channel Page, Video Player) in the same order as FR-006–FR-011.
 
 ## Tech stack
 
@@ -37,7 +37,6 @@ The Content Engine is responsible for building the home feed (latest 10 videos p
 Keep this section current as the project takes shape — update it whenever a new model, route group, or major structural decision is added, per the self-updating `.md` rule below.
 
 - Choose the Android TV app framework/stack and confirm how it authenticates to the YouTube Data API.
-- Resolve the `docs/PRD.md` section-numbering gap noted above with the user (missing "# 8" wrapper).
 - Define local on-device storage for PIN + approved channels (§11 of the PRD).
 - Build the Content Engine as the single chokepoint for feed/search/channel calls (§12–13 of the PRD).
 

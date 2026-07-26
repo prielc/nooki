@@ -133,28 +133,30 @@ Home
 
 ---
 
-## Daily Flow
+# 8. Core Features
 
-```אפליקציה:
+## Feature 1: Home Feed (Daily Flow)
 
+אפליקציה:
+
+```text
 עבור כל ערוץ מאושר:
 
 * שלוף את 10 הסרטונים האחרונים לפי תאריך פרסום.
 * מזג את כל הסרטונים.
 * ערבב את הרשימה.
 * אל תציג יותר משני סרטונים רצופים מאותו ערוץ.
+```
 
 ---
 
-### My Channels
+## Feature 2: My Channels
 
 מציג את כל הערוצים שאושרו.
 
 ---
 
-# Feature 4
-
-## Search
+## Feature 3: Search
 
 החיפוש מוגבל לערוצים המאושרים בלבד.
 
@@ -162,9 +164,7 @@ Home
 
 ---
 
-# Feature 5
-
-## Channel Page
+## Feature 4: Channel Page
 
 מציג:
 
@@ -174,9 +174,7 @@ Home
 
 ---
 
-# Feature 6
-
-## Video Player
+## Feature 5: Video Player
 
 האפליקציה תשתמש בנגן הרשמי של YouTube.
 
