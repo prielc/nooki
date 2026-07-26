@@ -16,11 +16,15 @@ Pre-code bootstrap. Product requirements are defined in [`docs/PRD.md`](docs/PRD
 
 Per PP-005 in the PRD, the product is explicitly **No Backend** — everything (PIN, approved-channel list) is persisted locally on-device (likely DataStore/Room, TBD when storage is implemented); there is no server/database component to design. Still open: how the app authenticates to / calls the YouTube Data API.
 
-Local dev environment note: this machine had no Android Studio, SDK, or Gradle, and only Java 8 (Compose/AGP need JDK 17+) — Android Studio is being installed via Homebrew (`brew install --cask android-studio`), which bundles its own JDK and lets the SDK be installed through its setup wizard.
+Local dev environment: this machine had no Android Studio, SDK, or Gradle, and only Java 8 (Compose/AGP need JDK 17+). Resolved headlessly rather than via Android Studio's interactive first-run wizard:
+- Android Studio installed via `brew install --cask android-studio` (`/Applications/Android Studio.app`) — used for its bundled JBR (JDK 21) at `/Applications/Android Studio.app/Contents/jbr/Contents/Home`.
+- Android SDK command-line tools installed via `brew install --cask android-commandlinetools`, rooted at `/opt/homebrew/share/android-commandlinetools`.
+- `platform-tools`, `platforms;android-34`, and `build-tools;34.0.0` installed and licenses accepted via that `sdkmanager`.
+- Export before running any Gradle/SDK command in this repo: `export ANDROID_HOME=/opt/homebrew/share/android-commandlinetools` and `export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"`.
 
 ## Commands
 
-None yet — no package manifest, build tooling, or test runner exists in this repo.
+None yet — no Gradle project exists in this repo yet (see Next steps). Once scaffolded, this section should list the actual `./gradlew` build/lint/test/install invocations.
 
 ## Data model
 
