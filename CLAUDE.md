@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project status
 
-Pre-code bootstrap. Product requirements are defined in [`docs/PRD.md`](docs/PRD.md) — read it before building features. No application code exists yet.
+Product requirements are defined in [`docs/PRD.md`](docs/PRD.md) — read it before building features. A minimal buildable Gradle/Compose-for-TV skeleton exists (`MainActivity` just renders "Nooki") — no PRD features (PIN, channel whitelist, Content Engine, feed/search/player) are implemented yet.
 
 **Nooki** is a parent-controlled YouTube viewer for kids on Android TV / Google TV (MVP targets Xiaomi TV Box-style streamers). A parent sets a PIN and builds an approved-channel whitelist; the child can only ever watch, search, or get recommended videos from within that whitelist — never raw YouTube, Shorts, comments, or related-channel content. All content requests flow through a single "Content Engine" chokepoint (see Architecture) so this guarantee holds everywhere in the app, not just on the home feed.
 
@@ -24,7 +24,14 @@ Local dev environment: this machine had no Android Studio, SDK, or Gradle, and o
 
 ## Commands
 
-None yet — no Gradle project exists in this repo yet (see Next steps). Once scaffolded, this section should list the actual `./gradlew` build/lint/test/install invocations.
+Before running any of these, export the SDK/JDK paths noted above (`ANDROID_HOME`, `JAVA_HOME`) — they aren't on this machine's default PATH.
+
+- `./gradlew assembleDebug` — build the debug APK (output at `app/build/outputs/apk/debug/app-debug.apk`).
+- `./gradlew installDebug` — build and install onto a connected/running Android TV device or emulator.
+- `./gradlew test` — run JVM unit tests (none written yet).
+- `./gradlew connectedAndroidTest` — run instrumented tests on a device/emulator (none written yet).
+
+No emulator or physical Android TV device is configured on this machine yet.
 
 ## Data model
 
@@ -32,7 +39,9 @@ None yet. Per the PRD (§11 Local Storage), the only persisted state is the PIN 
 
 ## Architecture
 
-None yet, but the PRD (§12–13) specifies the shape: every screen goes through a single **Content Engine**, never YouTube directly.
+Single Gradle module (`:app`, package `com.nooki.app`) — `MainActivity` is currently a bare `ComponentActivity` rendering a Compose `Text("Nooki")` via `androidx.tv.material3`. No Content Engine, storage, or screens exist yet.
+
+The PRD (§12–13) specifies the target shape: every screen goes through a single **Content Engine**, never YouTube directly.
 
 ```text
 Nooki UI → Content Engine → YouTube Data API → Official YouTube Player
@@ -40,13 +49,16 @@ Nooki UI → Content Engine → YouTube Data API → Official YouTube Player
 
 The Content Engine is responsible for building the home feed (latest 10 videos per approved channel, merged, shuffled, capped at 2 consecutive videos from the same channel), scoping search to approved channels only, and loading a channel's video list. This is the enforcement point for every whitelist business rule (BR-001–BR-008) in the PRD.
 
+Key build config to know when touching `app/build.gradle.kts`: `minSdk 21`, `compileSdk`/`targetSdk 34`, Kotlin 1.9.24 with Compose compiler extension `1.5.14` (must move together), Compose BOM `2024.06.00`, `androidx.tv:tv-foundation`/`tv-material` for TV-specific components (focus handling, `Text`/`MaterialTheme` come from `androidx.tv.material3`, not the phone `androidx.compose.material3`).
+
 ## Next steps for future sessions
 
 Keep this section current as the project takes shape — update it whenever a new model, route group, or major structural decision is added, per the self-updating `.md` rule below.
 
-- Choose the Android TV app framework/stack and confirm how it authenticates to the YouTube Data API.
-- Define local on-device storage for PIN + approved channels (§11 of the PRD).
+- Confirm how the app authenticates to / calls the YouTube Data API (API key handling, quota).
+- Define local on-device storage for PIN + approved channels (§11 of the PRD) — likely Jetpack DataStore.
 - Build the Content Engine as the single chokepoint for feed/search/channel calls (§12–13 of the PRD).
+- Add launcher icon/banner resources (currently omitted from `AndroidManifest.xml`).
 
 ## Git workflow (autonomous)
 
