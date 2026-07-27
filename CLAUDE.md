@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project status
 
-Product requirements are defined in [`docs/PRD.md`](docs/PRD.md) — read it before building features. A minimal buildable Gradle/Compose-for-TV skeleton exists (`MainActivity` just renders "Nooki") — no PRD features (PIN, channel whitelist, Content Engine, feed/search/player) are implemented yet.
+Product requirements are defined in [`docs/PRD.md`](docs/PRD.md) — read it before building features. A minimal buildable Gradle/Compose-for-TV skeleton exists (`MainActivity` just renders "Nooki"). The local storage layer (PIN + approved channels) is implemented; no UI screens, Content Engine, or YouTube API integration exist yet.
 
 **Nooki** is a parent-controlled YouTube viewer for kids on Android TV / Google TV (MVP targets Xiaomi TV Box-style streamers). A parent sets a PIN and builds an approved-channel whitelist; the child can only ever watch, search, or get recommended videos from within that whitelist — never raw YouTube, Shorts, comments, or related-channel content. All content requests flow through a single "Content Engine" chokepoint (see Architecture) so this guarantee holds everywhere in the app, not just on the home feed.
 
@@ -14,7 +14,7 @@ Product requirements are defined in [`docs/PRD.md`](docs/PRD.md) — read it bef
 
 **Kotlin + Jetpack Compose for TV**, native Android TV/Google TV app. Chosen over React Native for best-of-breed TV-remote input handling and Android TV platform support, matching PP-003 (TV Remote Only) and PP-004 (Simple Before Smart) — tradeoff is slower ramp-up if the team lacks prior Kotlin experience.
 
-Per PP-005 in the PRD, the product is explicitly **No Backend** — everything (PIN, approved-channel list) is persisted locally on-device (likely DataStore/Room, TBD when storage is implemented); there is no server/database component to design. Still open: how the app authenticates to / calls the YouTube Data API.
+Per PP-005 in the PRD, the product is explicitly **No Backend** — everything (PIN, approved-channel list) is persisted locally on-device via Jetpack DataStore (`ProfileStore`, see Data model below); there is no server/database component to design. Still open: how the app authenticates to / calls the YouTube Data API.
 
 Local dev environment: this machine had no Android Studio, SDK, or Gradle, and only Java 8 (Compose/AGP need JDK 17+). Resolved headlessly rather than via Android Studio's interactive first-run wizard:
 - Android Studio installed via `brew install --cask android-studio` (`/Applications/Android Studio.app`) — used for its bundled JBR (JDK 21) at `/Applications/Android Studio.app/Contents/jbr/Contents/Home`.
@@ -35,11 +35,17 @@ No emulator or physical Android TV device is configured on this machine yet.
 
 ## Data model
 
-None yet. Per the PRD (§11 Local Storage), the only persisted state is the PIN and the list of approved channels — no videos, feed, search results, or recommendations are ever cached locally.
+Per the PRD (§11 Local Storage), the only persisted state is the PIN and the list of approved channels — no videos, feed, search results, or recommendations are ever cached locally. Implemented in `app/src/main/java/com/nooki/app/data/ProfileStore.kt` via a single `androidx.datastore.preferences` store (`nooki_profile`):
+
+- **PIN** (FR-001/FR-002): stored only as a SHA-256 hash + random salt (both Base64-encoded), never in plaintext. `createPin(pin)` requires exactly 4 numeric digits; `validatePin(pin)` compares hashes with `MessageDigest.isEqual`.
+- **Approved channels** (FR-004/FR-005/FR-012): `ApprovedChannel(id, title, thumbnailUrl)` list, serialized as a JSON array string via `org.json` (no extra serialization dependency). `addChannel` dedupes by `id`; `removeChannel` filters by `id`.
+- Both exposed as `Flow`s (`isPinSet`, `approvedChannels`) for Compose to collect.
+
+Not yet covered by real tests: `ProfileStore` depends on `android.content.Context`/`android.util.Base64`, so plain JVM `./gradlew test` can't exercise it without Robolectric (not yet a dependency), and no emulator is configured for `connectedAndroidTest` — see Commands.
 
 ## Architecture
 
-Single Gradle module (`:app`, package `com.nooki.app`) — `MainActivity` is currently a bare `ComponentActivity` rendering a Compose `Text("Nooki")` via `androidx.tv.material3`. No Content Engine, storage, or screens exist yet.
+Single Gradle module (`:app`, package `com.nooki.app`) — `MainActivity` is currently a bare `ComponentActivity` rendering a Compose `Text("Nooki")` via `androidx.tv.material3`, not yet wired to `ProfileStore`. No Content Engine or screens exist yet.
 
 The PRD (§12–13) specifies the target shape: every screen goes through a single **Content Engine**, never YouTube directly.
 
@@ -55,10 +61,11 @@ Key build config to know when touching `app/build.gradle.kts`: `minSdk 21`, `com
 
 Keep this section current as the project takes shape — update it whenever a new model, route group, or major structural decision is added, per the self-updating `.md` rule below.
 
-- Confirm how the app authenticates to / calls the YouTube Data API (API key handling, quota).
-- Define local on-device storage for PIN + approved channels (§11 of the PRD) — likely Jetpack DataStore.
+- Build the "Create PIN" and "Validate PIN" screens (FR-001/FR-002) on top of `ProfileStore`, and wire `MainActivity` to the First Launch flow (PRD §7).
+- Confirm how the app authenticates to / calls the YouTube Data API (API key handling, quota) — needed before "Search First Channel"/"Add Channel" can be built.
 - Build the Content Engine as the single chokepoint for feed/search/channel calls (§12–13 of the PRD).
 - Add launcher icon/banner resources (currently omitted from `AndroidManifest.xml`).
+- Consider adding Robolectric (or similar) so `ProfileStore` and future Android-dependent logic can run under `./gradlew test` — see the testing gap noted in Data model.
 
 ## Git workflow (autonomous)
 
