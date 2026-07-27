@@ -45,7 +45,11 @@ Not yet covered by real tests: `ProfileStore` depends on `android.content.Contex
 
 ## Architecture
 
-Single Gradle module (`:app`, package `com.nooki.app`) — `MainActivity` is currently a bare `ComponentActivity` rendering a Compose `Text("Nooki")` via `androidx.tv.material3`, not yet wired to `ProfileStore`. No Content Engine or screens exist yet.
+Single Gradle module (`:app`, package `com.nooki.app`). `MainActivity` (`ComponentActivity`) creates a single `ProfileStore` and, via `collectAsState` on `isPinSet`, switches between `CreatePinScreen` (`ui/pin/CreatePinScreen.kt`) when no PIN exists and a `Text("Nooki")` placeholder once it does — the real home feed doesn't exist yet. The whole Compose tree is forced RTL (`CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl)`) since UI copy is Hebrew; `strings.xml` holds the screen text.
+
+`CreatePinScreen` is an on-screen 0–9 keypad (D-pad focusable, since Android TV remotes have no physical number keys — PP-003) driving a two-step enter-then-confirm flow; on confirm it calls `ProfileStore.createPin`, and the screen switch above happens automatically once the `isPinSet` flow updates — no explicit navigation callback needed. Note: `androidx.tv.material3.ColorScheme` has no `outline`/`surfaceVariant`-style role — use `border`/`borderVariant` instead (tripped this up once; see commit history).
+
+No Content Engine, "Validate PIN" screen (used later for gating channel-list edits, not routine launches — PRD §15), or YouTube API integration exist yet.
 
 The PRD (§12–13) specifies the target shape: every screen goes through a single **Content Engine**, never YouTube directly.
 
@@ -61,11 +65,11 @@ Key build config to know when touching `app/build.gradle.kts`: `minSdk 21`, `com
 
 Keep this section current as the project takes shape — update it whenever a new model, route group, or major structural decision is added, per the self-updating `.md` rule below.
 
-- Build the "Create PIN" and "Validate PIN" screens (FR-001/FR-002) on top of `ProfileStore`, and wire `MainActivity` to the First Launch flow (PRD §7).
-- Confirm how the app authenticates to / calls the YouTube Data API (API key handling, quota) — needed before "Search First Channel"/"Add Channel" can be built.
+- Confirm how the app authenticates to / calls the YouTube Data API (API key handling, quota) — needed before "Search First Channel"/"Add Channel" (next step in the First Launch flow, PRD §7) can be built.
 - Build the Content Engine as the single chokepoint for feed/search/channel calls (§12–13 of the PRD).
+- Build the "Validate PIN" screen/gate (FR-002) for protecting channel-list edits later (PRD §15), and the real Home Feed to replace the `Text("Nooki")` placeholder.
 - Add launcher icon/banner resources (currently omitted from `AndroidManifest.xml`).
-- Consider adding Robolectric (or similar) so `ProfileStore` and future Android-dependent logic can run under `./gradlew test` — see the testing gap noted in Data model.
+- Consider adding Robolectric (or similar) so `ProfileStore`/Compose screens can run under `./gradlew test` — see the testing gap noted in Data model. No emulator is set up either, so `CreatePinScreen`'s D-pad focus/keypad behavior is unverified on real TV hardware.
 
 ## Git workflow (autonomous)
 

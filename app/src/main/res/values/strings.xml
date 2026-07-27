@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Nooki</string>
+    <string name="create_pin_title">יצירת קוד PIN</string>
+    <string name="create_pin_subtitle_enter">הזן קוד בן 4 ספרות</string>
+    <string name="create_pin_subtitle_confirm">אשר את הקוד</string>
+    <string name="create_pin_error_mismatch">הקודים אינם תואמים, נסה שוב</string>
+    <string name="pin_delete">מחק</string>
 </resources>
