@@ -49,7 +49,7 @@ Nooki UI → Content Engine → YouTube Data API → Official YouTube Player
 
 The Content Engine is responsible for building the home feed (latest 10 videos per approved channel, merged, shuffled, capped at 2 consecutive videos from the same channel), scoping search to approved channels only, and loading a channel's video list. This is the enforcement point for every whitelist business rule (BR-001–BR-008) in the PRD.
 
-Key build config to know when touching `app/build.gradle.kts`: `minSdk 21`, `compileSdk`/`targetSdk 34`, Kotlin 1.9.24 with Compose compiler extension `1.5.14` (must move together), Compose BOM `2024.06.00`, `androidx.tv:tv-foundation`/`tv-material` for TV-specific components (focus handling, `Text`/`MaterialTheme` come from `androidx.tv.material3`, not the phone `androidx.compose.material3`).
+Key build config to know when touching `app/build.gradle.kts`: `minSdk 21`, `compileSdk`/`targetSdk 34`, Kotlin 1.9.24 with Compose compiler extension `1.5.14` (must move together), Compose BOM `2024.06.00`, `androidx.tv:tv-foundation`/`tv-material` for TV-specific components (focus handling, `Text`/`MaterialTheme` come from `androidx.tv.material3`, not the phone `androidx.compose.material3`). Root-level: AGP `8.5.2` and Gradle wrapper `8.7` (`build.gradle.kts`, `gradle/wrapper/gradle-wrapper.properties`) — both require the JDK 17+ `JAVA_HOME` noted above.
 
 ## Next steps for future sessions
 
