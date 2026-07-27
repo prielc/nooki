@@ -49,7 +49,9 @@ Single Gradle module (`:app`, package `com.nooki.app`). `MainActivity` (`Compone
 
 `CreatePinScreen` is an on-screen 0–9 keypad (D-pad focusable, since Android TV remotes have no physical number keys — PP-003) driving a two-step enter-then-confirm flow; on confirm it calls `ProfileStore.createPin`, and the screen switch above happens automatically once the `isPinSet` flow updates — no explicit navigation callback needed. Note: `androidx.tv.material3.ColorScheme` has no `outline`/`surfaceVariant`-style role — use `border`/`borderVariant` instead (tripped this up once; see commit history).
 
-No Content Engine, "Validate PIN" screen (used later for gating channel-list edits, not routine launches — PRD §15), or YouTube API integration exist yet.
+`ValidatePinScreen` (FR-002) reuses the same keypad for a single-attempt PIN check via `ProfileStore.validatePin`, calling `onSuccess()` on match or clearing input and showing an error on mismatch. Per PRD §15 it gates parent-only actions (editing the channel list) — **not** routine app launches, so it's intentionally not wired into `MainActivity` yet; there's no "My Channels" edit screen to attach it to. The dots indicator (`PinDots`) and keypad grid (`PinKeypad`) live in `ui/pin/PinKeypad.kt`, shared by both PIN screens.
+
+No Content Engine or YouTube API integration exist yet.
 
 The PRD (§12–13) specifies the target shape: every screen goes through a single **Content Engine**, never YouTube directly.
 
@@ -67,7 +69,8 @@ Keep this section current as the project takes shape — update it whenever a ne
 
 - Confirm how the app authenticates to / calls the YouTube Data API (API key handling, quota) — needed before "Search First Channel"/"Add Channel" (next step in the First Launch flow, PRD §7) can be built.
 - Build the Content Engine as the single chokepoint for feed/search/channel calls (§12–13 of the PRD).
-- Build the "Validate PIN" screen/gate (FR-002) for protecting channel-list edits later (PRD §15), and the real Home Feed to replace the `Text("Nooki")` placeholder.
+- Build the "My Channels" screen (Feature 2) and wire `ValidatePinScreen` in front of its add/remove actions (FR-002/FR-004/FR-005) — it's implemented but unused until that screen exists.
+- Build the real Home Feed to replace the `Text("Nooki")` placeholder in `MainActivity`.
 - Add launcher icon/banner resources (currently omitted from `AndroidManifest.xml`).
 - Consider adding Robolectric (or similar) so `ProfileStore`/Compose screens can run under `./gradlew test` — see the testing gap noted in Data model. No emulator is set up either, so `CreatePinScreen`'s D-pad focus/keypad behavior is unverified on real TV hardware.
 

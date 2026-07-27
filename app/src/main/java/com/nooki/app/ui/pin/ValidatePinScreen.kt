@@ -20,42 +20,28 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.nooki.app.R
 
-private enum class PinStage {
-    ENTER,
-    CONFIRM
-}
-
 /**
- * On-screen numeric keypad (no physical number keys on a TV remote, per PP-003)
- * driving the two-step "enter, then confirm" flow for FR-001 (Create PIN).
+ * Gate for parent-only actions (FR-002; PRD §15 — any change to the approved-channel
+ * list requires the PIN). Not used to gate routine app launches for the child.
  */
 @Composable
-fun CreatePinScreen(createPin: suspend (String) -> Unit, modifier: Modifier = Modifier) {
-    var stage by remember { mutableStateOf(PinStage.ENTER) }
-    var firstPin by remember { mutableStateOf("") }
+fun ValidatePinScreen(
+    validatePin: suspend (String) -> Boolean,
+    onSuccess: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     var currentInput by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val firstDigitFocusRequester = remember { FocusRequester() }
-    val mismatchMessage = stringResource(R.string.create_pin_error_mismatch)
+    val errorText = stringResource(R.string.validate_pin_error)
 
-    LaunchedEffect(stage, currentInput) {
+    LaunchedEffect(currentInput) {
         if (currentInput.length < PIN_LENGTH) return@LaunchedEffect
-        when (stage) {
-            PinStage.ENTER -> {
-                firstPin = currentInput
-                currentInput = ""
-                stage = PinStage.CONFIRM
-            }
-            PinStage.CONFIRM -> {
-                if (currentInput == firstPin) {
-                    createPin(currentInput)
-                } else {
-                    firstPin = ""
-                    currentInput = ""
-                    stage = PinStage.ENTER
-                    errorMessage = mismatchMessage
-                }
-            }
+        if (validatePin(currentInput)) {
+            onSuccess()
+        } else {
+            currentInput = ""
+            errorMessage = errorText
         }
     }
 
@@ -68,11 +54,9 @@ fun CreatePinScreen(createPin: suspend (String) -> Unit, modifier: Modifier = Mo
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = stringResource(R.string.create_pin_title), fontSize = 32.sp)
+        Text(text = stringResource(R.string.validate_pin_title), fontSize = 32.sp)
         Text(
-            text = stringResource(
-                if (stage == PinStage.ENTER) R.string.create_pin_subtitle_enter else R.string.create_pin_subtitle_confirm
-            ),
+            text = stringResource(R.string.validate_pin_subtitle),
             modifier = Modifier.padding(top = 8.dp)
         )
         errorMessage?.let { message ->
@@ -87,6 +71,7 @@ fun CreatePinScreen(createPin: suspend (String) -> Unit, modifier: Modifier = Mo
             firstDigitFocusRequester = firstDigitFocusRequester,
             onDigit = { digit ->
                 if (currentInput.length < PIN_LENGTH) {
+                    errorMessage = null
                     currentInput += digit
                 }
             },
