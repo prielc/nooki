@@ -14,7 +14,16 @@ Product requirements are defined in [`docs/PRD.md`](docs/PRD.md) — read it bef
 
 **Kotlin + Jetpack Compose for TV**, native Android TV/Google TV app. Chosen over React Native for best-of-breed TV-remote input handling and Android TV platform support, matching PP-003 (TV Remote Only) and PP-004 (Simple Before Smart) — tradeoff is slower ramp-up if the team lacks prior Kotlin experience.
 
-Per PP-005 in the PRD, the product is explicitly **No Backend** — everything (PIN, approved-channel list) is persisted locally on-device via Jetpack DataStore (`ProfileStore`, see Data model below); there is no server/database component to design. Still open: how the app authenticates to / calls the YouTube Data API.
+Per PP-005 in the PRD, the product is explicitly **No Backend** — everything (PIN, approved-channel list) is persisted locally on-device via Jetpack DataStore (`ProfileStore`, see Data model below); there is no server/database component to design.
+
+**YouTube Data API v3 strategy** (decided; not yet implemented): a single API key is embedded in every install (no per-user key, no backend to proxy through) and protected by *restricting* it in Google Cloud Console — Application restriction: Android apps (package `com.nooki.app` + release/debug SHA-1 fingerprints), API restriction: YouTube Data API v3 only. Obfuscating the key string itself is not real protection (it's always extractable from the APK); the restriction is what actually stops misuse.
+
+Because that key's 10,000-units/day quota is *shared across every install* (not per-user), endpoint choice matters a lot: `search.list` costs 100 units/call, `channels.list`/`playlistItems.list` cost 1 unit/call. So:
+- Home Feed (Feature 1) and Channel Page (Feature 4): `playlistItems.list` against each approved channel's uploads playlist — cheap.
+- Search within approved channels (Feature 3, FR-008): **not** `search.list` per keystroke/query — instead the Content Engine fetches each approved channel's recent videos via the same cheap `playlistItems.list` and filters in-memory (never persisted, per §11). Tradeoff: only covers the recently-fetched window per channel, not a channel's full history — acceptable for a kids' app.
+- Search Channel to add it (FR-003, a parent-only, infrequent action): `search.list` is unavoidable here since there's no cheaper way to search YouTube by channel name.
+
+Key plumbing is wired (`app/build.gradle.kts` reads `YOUTUBE_API_KEY` from `local.properties`, gitignored, into `BuildConfig.YOUTUBE_API_KEY`) but the field is empty until a real key is created and pasted in — see Next steps.
 
 Local dev environment: this machine had no Android Studio, SDK, or Gradle, and only Java 8 (Compose/AGP need JDK 17+). Resolved headlessly rather than via Android Studio's interactive first-run wizard:
 - Android Studio installed via `brew install --cask android-studio` (`/Applications/Android Studio.app`) — used for its bundled JBR (JDK 21) at `/Applications/Android Studio.app/Contents/jbr/Contents/Home`.
@@ -67,8 +76,8 @@ Key build config to know when touching `app/build.gradle.kts`: `minSdk 21`, `com
 
 Keep this section current as the project takes shape — update it whenever a new model, route group, or major structural decision is added, per the self-updating `.md` rule below.
 
-- Confirm how the app authenticates to / calls the YouTube Data API (API key handling, quota) — needed before "Search First Channel"/"Add Channel" (next step in the First Launch flow, PRD §7) can be built.
-- Build the Content Engine as the single chokepoint for feed/search/channel calls (§12–13 of the PRD).
+- Create the actual YouTube Data API v3 key (Google Cloud Console) and paste it into `local.properties` as `YOUTUBE_API_KEY=...` — strategy is decided (see Tech stack), plumbing is wired, only the real key is missing.
+- Build the Content Engine as the single chokepoint for feed/search/channel calls (§12–13 of the PRD), implementing the endpoint choices documented above.
 - Build the "My Channels" screen (Feature 2) and wire `ValidatePinScreen` in front of its add/remove actions (FR-002/FR-004/FR-005) — it's implemented but unused until that screen exists.
 - Build the real Home Feed to replace the `Text("Nooki")` placeholder in `MainActivity`.
 - Add launcher icon/banner resources (currently omitted from `AndroidManifest.xml`).
